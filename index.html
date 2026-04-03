@@ -100,7 +100,7 @@ body {
 .dashboard { padding: 16px; gap: 16px; }
 .cal-card {
   background: linear-gradient(135deg, #FF6B35, #ff8f5e);
-  border-radius: 24px; padding: 24px; color: #fff;
+  border-radius: 24px; padding: 16px; color: #fff;
   text-align: center; position: relative; overflow: hidden;
 }
 .cal-card::after {
@@ -108,15 +108,15 @@ body {
   width: 120px; height: 120px; border-radius: 50%;
   background: rgba(255,255,255,0.12);
 }
-.cal-ring-wrap { position: relative; display: inline-block; margin: 12px 0; }
+.cal-ring-wrap { position: relative; display: inline-block; margin: 6px 0; }
 .cal-ring-wrap svg { transform: rotate(-90deg); }
 .cal-center {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
   text-align: center;
 }
-.cal-center .num { font-size: 36px; font-weight: 900; line-height: 1; }
-.cal-center .label { font-size: 12px; opacity: 0.8; }
-.macro-row { display: flex; justify-content: center; gap: 24px; margin-top: 12px; }
+.cal-center .num { font-size: 30px; font-weight: 900; line-height: 1; }
+.cal-center .label { font-size: 11px; opacity: 0.8; }
+.macro-row { display: flex; justify-content: center; gap: 24px; margin-top: 8px; }
 .macro-item { text-align: center; }
 .macro-bar-bg {
   width: 60px; height: 6px; background: rgba(255,255,255,0.25);
@@ -255,7 +255,24 @@ body {
 }
 .btn-mic { background: var(--blue); color: #fff; }
 .btn-mic.recording { background: var(--red); animation: pulse 1s infinite; }
-@keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
+@keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.15)} }
+.recording-bar {
+  display: none; align-items: center; gap: 10px;
+  padding: 10px 16px; background: var(--red); color: #fff;
+  font-weight: 700; font-size: 14px; animation: fadeIn .3s ease;
+}
+.recording-bar.active { display: flex; }
+.recording-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #fff; animation: blink 1s infinite;
+}
+.recording-bar .rec-time { flex: 1; }
+.recording-bar .rec-stop {
+  background: rgba(255,255,255,0.25); border: none; color: #fff;
+  padding: 6px 14px; border-radius: 10px; font-weight: 700;
+  font-family: inherit; font-size: 13px; cursor: pointer;
+}
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
 .btn-cam { background: var(--purple); color: #fff; }
 .btn-send { background: var(--accent); color: #fff; }
 .btn-send:disabled { opacity: 0.4; }
@@ -485,7 +502,7 @@ body {
     <div class="cal-card">
       <div style="font-weight:800;font-size:14px;opacity:.9">Oggi</div>
       <div class="cal-ring-wrap">
-        <svg width="160" height="160" viewBox="0 0 160 160">
+        <svg width="130" height="130" viewBox="0 0 160 160">
           <circle cx="80" cy="80" r="68" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="10"/>
           <circle cx="80" cy="80" r="68" fill="none" stroke="#fff" stroke-width="10"
             stroke-linecap="round" id="calRing"
@@ -531,6 +548,11 @@ body {
       <div class="msg ai">
         Ciao! 👋 Dimmi cosa hai mangiato — scrivi, manda un vocale, o scatta una foto! Ti calcolo tutto io.
       </div>
+    </div>
+    <div class="recording-bar" id="recordingBar">
+      <div class="recording-dot"></div>
+      <span class="rec-time" id="recTime">Registrando... 0s</span>
+      <button class="rec-stop" onclick="toggleVoice()">⏹ Stop e Invia</button>
     </div>
     <div class="chat-input-bar">
       <button class="chat-btn btn-cam" onclick="document.getElementById('photoInput').click()" title="Foto">📷</button>
@@ -1589,39 +1611,70 @@ function pickSaveMeal(el, mealType) {
 // Voice Input
 // ═══════════════════════════════════════════
 let recognition = null;
+let recTimerInterval = null;
+let recSeconds = 0;
+
 function toggleVoice() {
   const btn = document.getElementById('micBtn');
+  const bar = document.getElementById('recordingBar');
+
   if (recognition) {
+    // Stop recording
     recognition.stop();
     recognition = null;
     btn.classList.remove('recording');
+    bar.classList.remove('active');
+    clearInterval(recTimerInterval);
+    recTimerInterval = null;
+    recSeconds = 0;
     return;
   }
 
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) return alert('Riconoscimento vocale non supportato in questo browser');
+  if (!SR) return alert('Riconoscimento vocale non supportato. Usa Safari su iPhone.');
 
   recognition = new SR();
   recognition.lang = 'it-IT';
   recognition.continuous = false;
   recognition.interimResults = false;
 
-  recognition.onstart = () => btn.classList.add('recording');
+  recognition.onstart = () => {
+    btn.classList.add('recording');
+    bar.classList.add('active');
+    recSeconds = 0;
+    document.getElementById('recTime').textContent = 'Registrando... 0s';
+    recTimerInterval = setInterval(() => {
+      recSeconds++;
+      document.getElementById('recTime').textContent = `Registrando... ${recSeconds}s`;
+    }, 1000);
+  };
+
   recognition.onresult = e => {
     const text = e.results[0][0].transcript;
     document.getElementById('chatInput').value = text;
     autoResize(document.getElementById('chatInput'));
     sendMessage();
   };
+
   recognition.onend = () => {
     btn.classList.remove('recording');
+    bar.classList.remove('active');
+    clearInterval(recTimerInterval);
+    recTimerInterval = null;
     recognition = null;
+    recSeconds = 0;
   };
+
   recognition.onerror = e => {
     btn.classList.remove('recording');
+    bar.classList.remove('active');
+    clearInterval(recTimerInterval);
+    recTimerInterval = null;
     recognition = null;
+    recSeconds = 0;
     if (e.error !== 'aborted') addChatMsg('ai', '❌ Errore vocale: ' + e.error);
   };
+
   recognition.start();
 }
 
