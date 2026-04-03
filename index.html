@@ -211,6 +211,18 @@ body {
   background: var(--green); color: #fff; border: none; font-weight: 700;
   font-family: inherit; cursor: pointer; font-size: 13px; width: 100%;
 }
+.food-save-area { margin-top: 10px; }
+.food-meal-picker {
+  display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 8px;
+}
+.food-meal-chip {
+  padding: 4px 10px; border-radius: 14px; border: 1.5px solid var(--border);
+  background: var(--bg); font-size: 11px; font-weight: 700; cursor: pointer;
+  font-family: inherit; color: var(--text); transition: all .2s;
+}
+.food-meal-chip.active {
+  background: var(--accent); color: #fff; border-color: var(--accent);
+}
 .msg .photo-preview {
   width: 100%; max-width: 200px; border-radius: 12px; margin-bottom: 6px;
 }
@@ -1440,7 +1452,14 @@ async function sendMessage() {
     if (result.comment) html += `<div class="food-comment">💡 ${result.comment}</div>`;
 
     const mealLabel = MEAL_TYPES[currentMealType]?.label || currentMealType;
-    html += `<button class="food-btn" onclick="saveMealFromAI()">✅ Salva in ${mealLabel}</button>`;
+    html += `<div class="food-save-area">
+      <div class="food-meal-picker">
+        ${Object.entries(MEAL_TYPES).map(([k, v]) =>
+          `<button class="food-meal-chip ${k===currentMealType?'active':''}" onclick="pickSaveMeal(this,'${k}')">${v.icon} ${v.label}</button>`
+        ).join('')}
+      </div>
+      <button class="food-btn" id="saveMealBtn" onclick="saveMealFromAI()">✅ Salva in ${mealLabel}</button>
+    </div>`;
 
     addChatMsg('ai', html);
     pendingAIResult = result;
@@ -1552,6 +1571,18 @@ async function saveMealFromAI() {
 
   // Check auto-adjust
   if (settings.autoAdjust) checkAutoAdjust();
+}
+
+function pickSaveMeal(el, mealType) {
+  // Update selection in the inline picker
+  el.closest('.food-meal-picker').querySelectorAll('.food-meal-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  currentMealType = mealType;
+  // Update save button text
+  const btn = el.closest('.food-save-area').querySelector('.food-btn');
+  if (btn) btn.textContent = `✅ Salva in ${MEAL_TYPES[mealType]?.label || mealType}`;
+  // Also update the top selector
+  renderMealSelector();
 }
 
 // ═══════════════════════════════════════════
