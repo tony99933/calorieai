@@ -101,12 +101,12 @@ body {
 .cal-card {
   background: linear-gradient(135deg, #FF6B35, #ff8f5e);
   border-radius: 24px; padding: 16px; color: #fff;
-  text-align: center; position: relative; overflow: hidden;
+  text-align: center; position: relative;
 }
 .cal-card::after {
   content: ''; position: absolute; top: -30px; right: -30px;
   width: 120px; height: 120px; border-radius: 50%;
-  background: rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.12); pointer-events: none;
 }
 .cal-ring-wrap { position: relative; display: inline-block; margin: 6px 0; }
 .cal-ring-wrap svg { transform: rotate(-90deg); }
