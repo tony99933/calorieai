@@ -1478,7 +1478,7 @@ Se non parla di cibo: {"error":"Non ho capito cosa hai mangiato. Dimmi cosa hai 
     body: JSON.stringify({
       system_instruction: {parts: [{text: systemPrompt}]},
       contents: [{parts}],
-      generationConfig: {temperature: 0.3, maxOutputTokens: 1024}
+      generationConfig: {temperature: 0.3, maxOutputTokens: 4096}
     })
   });
 
@@ -1494,7 +1494,40 @@ Se non parla di cibo: {"error":"Non ho capito cosa hai mangiato. Dimmi cosa hai 
   try {
     return JSON.parse(clean);
   } catch {
-    throw new Error('Risposta AI non valida: ' + rawText.substring(0, 200));
+    // Try to repair truncated JSON
+    try {
+      let fixed = clean;
+      // Count open/close brackets and braces
+      const openBraces = (fixed.match(/{/g) || []).length;
+      const closeBraces = (fixed.match(/}/g) || []).length;
+      const openBrackets = (fixed.match(/\[/g) || []).length;
+      const closeBrackets = (fixed.match(/\]/g) || []).length;
+
+      // Remove trailing incomplete item (after last comma in array)
+      if (fixed.includes('"items"')) {
+        const lastComplete = fixed.lastIndexOf('}');
+        if (lastComplete > 0) {
+          fixed = fixed.substring(0, lastComplete + 1);
+        }
+      }
+
+      // Close any open brackets/braces
+      for (let i = 0; i < openBrackets - (fixed.match(/\]/g) || []).length; i++) fixed += ']';
+      for (let i = 0; i < openBraces - (fixed.match(/}/g) || []).length; i++) fixed += '}';
+
+      const parsed = JSON.parse(fixed);
+      // If total is missing, calculate from items
+      if (!parsed.total && parsed.items) {
+        parsed.total = parsed.items.reduce((t, i) => ({
+          kcal: (t.kcal||0) + (i.kcal||0), carbs: (t.carbs||0) + (i.carbs||0),
+          fat: (t.fat||0) + (i.fat||0), protein: (t.protein||0) + (i.protein||0)
+        }), {});
+      }
+      if (!parsed.comment) parsed.comment = '';
+      return parsed;
+    } catch {
+      throw new Error('Risposta AI non valida. Riprova con un messaggio più corto.');
+    }
   }
 }
 
