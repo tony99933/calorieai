@@ -355,47 +355,50 @@ body {
 .weight-entry:last-child { border: none; }
 
 /* ── Settings ── */
-.settings-view { padding: 16px; gap: 12px; padding-bottom: 100px; }
+.settings-view { padding: 12px; gap: 10px; padding-bottom: 100px; }
 .settings-group {
-  background: var(--bg2); border-radius: 16px; overflow: hidden;
-  box-shadow: var(--card-shadow);
+  background: var(--bg2); border-radius: 14px;
+  box-shadow: var(--card-shadow); margin-bottom: 2px;
 }
 .settings-group-title {
-  padding: 12px 16px 4px; font-size: 12px; font-weight: 800;
-  color: var(--text2); text-transform: uppercase; letter-spacing: 1px;
+  padding: 10px 14px 2px; font-size: 11px; font-weight: 800;
+  color: var(--accent); text-transform: uppercase; letter-spacing: 1px;
 }
 .setting-row {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 16px; border-bottom: 1px solid var(--border);
+  padding: 10px 14px; border-bottom: 1px solid var(--border);
+  min-height: 44px;
 }
 .setting-row:last-child { border: none; }
-.setting-label { font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+.setting-label { font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .setting-input {
-  width: 100px; text-align: right; border: 1px solid var(--border);
-  border-radius: 10px; padding: 6px 10px; font-size: 14px;
+  width: 90px; text-align: right; border: 1.5px solid var(--border);
+  border-radius: 8px; padding: 6px 8px; font-size: 14px;
   font-family: inherit; background: var(--input-bg); color: var(--text);
   outline: none;
 }
+.setting-input:focus { border-color: var(--accent); }
 .setting-select {
-  border: 1px solid var(--border); border-radius: 10px; padding: 6px 10px;
-  font-size: 14px; font-family: inherit; background: var(--input-bg);
-  color: var(--text); outline: none;
+  border: 1.5px solid var(--border); border-radius: 8px; padding: 6px 8px;
+  font-size: 13px; font-family: inherit; background: var(--input-bg);
+  color: var(--text); outline: none; max-width: 160px;
 }
+.setting-select:focus { border-color: var(--accent); }
 .toggle {
-  width: 48px; height: 28px; border-radius: 14px; border: none;
+  width: 44px; height: 26px; border-radius: 13px; border: none;
   background: var(--border); position: relative; cursor: pointer;
-  transition: background .3s;
+  transition: background .3s; flex-shrink: 0;
 }
 .toggle.on { background: var(--green); }
 .toggle::after {
-  content: ''; position: absolute; top: 3px; left: 3px;
+  content: ''; position: absolute; top: 2px; left: 2px;
   width: 22px; height: 22px; border-radius: 50%; background: #fff;
   transition: transform .3s; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
-.toggle.on::after { transform: translateX(20px); }
+.toggle.on::after { transform: translateX(18px); }
 .setting-btn {
-  width: 100%; padding: 14px; border: none; background: none;
-  font-family: inherit; font-size: 14px; font-weight: 700;
+  width: 100%; padding: 12px; border: none; background: none;
+  font-family: inherit; font-size: 13px; font-weight: 700;
   cursor: pointer; color: var(--accent); text-align: center;
 }
 .setting-btn.danger { color: var(--red); }
@@ -706,12 +709,12 @@ body {
       <div class="settings-group-title">🤖 AI</div>
       <div class="setting-row">
         <span class="setting-label">API Key</span>
-        <input class="setting-input" type="password" id="setApiKey" style="width:160px"
-          onchange="saveSetting('apiKey',this.value)" placeholder="••••••••">
+        <input class="setting-input" type="password" id="setApiKey" style="width:140px;font-size:12px"
+          onchange="saveSetting('apiKey',this.value)" placeholder="AIza...">
       </div>
       <div class="setting-row">
         <span class="setting-label">Modello</span>
-        <input class="setting-input" type="text" id="setModel" style="width:180px"
+        <input class="setting-input" type="text" id="setModel" style="width:150px;font-size:12px"
           onchange="saveSetting('model',this.value)">
       </div>
       <div class="setting-row">
